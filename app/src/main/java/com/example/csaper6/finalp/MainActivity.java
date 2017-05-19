@@ -27,9 +27,10 @@ import javax.crypto.SealedObject;
 
 public class MainActivity extends AppCompatActivity implements SalutDataCallback{
 
-    private TextView one, two;
+    private TextView encryptedMessageText, messageText;
     private EditText three;
     private Button button, buttonHost, buttonJoin,buttonSend;
+    private String encryptedMessage, messageToSend;
 
     public static final String TAG = MainActivity.class.getSimpleName();
     private Salut network;
@@ -39,8 +40,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        one = (TextView) findViewById(R.id.one);
-        two = (TextView) findViewById(R.id.two);
+        encryptedMessageText = (TextView) findViewById(R.id.one);
+        messageText = (TextView) findViewById(R.id.two);
         three = (EditText) findViewById(R.id.three);
         button = (Button) findViewById(R.id.button);
         buttonHost = (Button) findViewById(R.id.button_host);
@@ -70,9 +71,10 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 rsa hello = new rsa();
                 KeyPair key = hello.MakeKeys();
                 SealedObject message = hello.enCrypt(key, three.getText().toString());
-                String x = hello.decipher(message, key);
-                two.setText(x);
-                one.setText(key.getPublic().toString());
+                String inputMessage = hello.decipher(message, key);
+                messageText.setText(inputMessage);
+                encryptedMessageText.setText(key.getPublic().toString());
+                messageToSend = key.getPublic().toString();
 //                salutTry newNetwork = new salutTry();
 //                newNetwork.joinNetwork();
 
@@ -136,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         Log.d(TAG, "Received network data.");
         try
         {
-            Message newMessage = LoganSquare.parse((Message)data, Message.class);
+            Message newMessage = LoganSquare.parse(data.toString(),Message.class);
             Log.d(TAG, newMessage.description);  //See you on the other side!
             //Do other stuff with data.
         }
@@ -150,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     public void test()
     {
         Message myMessage = new Message();
-        myMessage.description = "See you on the other side!";
+        myMessage.description = messageToSend;
 
         network.sendToAllDevices(myMessage, new SalutCallback() {
             @Override
@@ -158,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 Log.e(TAG, "Oh no! The data failed to send.");
             }
         });
+        onDataReceived(myMessage);
     }
 
 
@@ -190,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         }, false);
 
     }
+
 
 }
 
@@ -297,8 +301,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 //
 //
 //
-//                one.setText(priv.getPrivateExponent().toString());
-//                two.setText(message);
+//                encryptedMessageText.setText(priv.getPrivateExponent().toString());
+//                messageText.setText(message);
 //
 //
 //            }
