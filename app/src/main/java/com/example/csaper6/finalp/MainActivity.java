@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bluelinelabs.logansquare.LoganSquare;
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
 import com.peak.salut.Callbacks.SalutDeviceCallback;
@@ -18,6 +19,7 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 
+import java.io.IOException;
 import java.security.KeyPair;
 
 import javax.crypto.SealedObject;
@@ -27,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
     private TextView one, two;
     private EditText three;
-    private Button button, buttonHost, buttonJoin;
+    private Button button, buttonHost, buttonJoin,buttonSend;
 
     public static final String TAG = MainActivity.class.getSimpleName();
     private Salut network;
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         button = (Button) findViewById(R.id.button);
         buttonHost = (Button) findViewById(R.id.button_host);
         buttonJoin = (Button) findViewById(R.id.button_join);
+        buttonSend = (Button)findViewById(R.id.button_send);
+        //setOnClickListeners();
         SalutDataReceiver dataReceiver = new SalutDataReceiver(MainActivity.this, MainActivity.this);
         SalutServiceData serviceData = new SalutServiceData("sas", 50489, "hello");
 
@@ -89,9 +93,26 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             @Override
             public void onClick(View v) {
                 joinNetwork();
+
+            }
+        });
+        buttonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                test();
+
             }
         });
     }
+
+//    private void setOnClickListeners() {
+//        buttonJoin.setOnClickListener((View.OnClickListener) this);
+//        button.setOnClickListener((View.OnClickListener) this);
+//        buttonHost.setOnClickListener((View.OnClickListener) this);
+//        buttonSend.setOnClickListener((View.OnClickListener) this);
+//    }
+
 
 //    private void salut() {
 //        setContentView(R.layout.activity_salut_try);
@@ -111,11 +132,33 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
 
     @Override
-    public void onDataReceived(Object o) {
-
+    public void onDataReceived(Object data) {
+        Log.d(TAG, "Received network data.");
+        try
+        {
+            Message newMessage = LoganSquare.parse((Message)data, Message.class);
+            Log.d(TAG, newMessage.description);  //See you on the other side!
+            //Do other stuff with data.
+        }
+        catch (IOException ex)
+        {
+            Log.e(TAG, "Failed to parse network data.");
+        }
     }
 
 
+    public void test()
+    {
+        Message myMessage = new Message();
+        myMessage.description = "See you on the other side!";
+
+        network.sendToAllDevices(myMessage, new SalutCallback() {
+            @Override
+            public void call() {
+                Log.e(TAG, "Oh no! The data failed to send.");
+            }
+        });
+    }
 
 
     protected void hostNetwork()
@@ -146,7 +189,9 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             }
         }, false);
 
-    }}
+    }
+
+}
 
 
 

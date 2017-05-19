@@ -3,6 +3,7 @@ package com.example.csaper6.finalp;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
@@ -44,6 +45,7 @@ public class SalutActivity extends AppCompatActivity implements SalutDataCallbac
             @Override
             public void call(SalutDevice device) {
                 Log.d(TAG, device.readableName + " has connected!");
+                Toast.makeText(SalutActivity.this, "yay", Toast.LENGTH_SHORT).show();
             }
         });
     }
