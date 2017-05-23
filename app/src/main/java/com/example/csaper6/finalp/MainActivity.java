@@ -30,8 +30,9 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     private TextView encryptedMessageText, messageText;
     private EditText three;
     private Button button, buttonHost, buttonJoin,buttonSend;
-    private String encryptedMessage, messageToSend;
+    private String encryptedMessage, messageToSend, publicKey;
 
+    private boolean isHost=false;
     public static final String TAG = MainActivity.class.getSimpleName();
     private Salut network;
 
@@ -70,11 +71,12 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             public void onClick(View view) {
                 rsa hello = new rsa();
                 KeyPair key = hello.MakeKeys();
-                SealedObject message = hello.enCrypt(key, three.getText().toString());
-                String inputMessage = hello.decipher(message, key);
-                messageText.setText(inputMessage);
+                SealedObject message = hello.enCrypt(key.getPublic(), three.getText().toString());
+//                String inputMessage = hello.decipher(message, key.getPrivate());
+//                messageText.setText(inputMessage);
                 encryptedMessageText.setText(key.getPublic().toString());
-                messageToSend = key.getPublic().toString();
+                messageToSend = message.toString();
+                publicKey = key.getPublic().toString();
 //                salutTry newNetwork = new salutTry();
 //                newNetwork.joinNetwork();
 
@@ -88,12 +90,14 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         buttonHost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isHost = true;
                 hostNetwork();
             }
         });
         buttonJoin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isHost = false;
                 joinNetwork();
 
             }
@@ -102,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             @Override
             public void onClick(View v) {
 
-                test();
+
+                sendMessage();
 
             }
         });
@@ -141,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             Message newMessage = LoganSquare.parse(data.toString(),Message.class);
             Log.d(TAG, newMessage.description);  //See you on the other side!
             //Do other stuff with data.
+            encryptedMessage = newMessage.description;
         }
         catch (IOException ex)
         {
@@ -149,10 +155,11 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     }
 
 
-    public void test()
+    public void sendMessage()
     {
         Message myMessage = new Message();
-        myMessage.description = messageToSend;
+        myMessage.description = "Encrypted Message: " + messageToSend + " \n"
+        + "Public key: " + publicKey;
 
         network.sendToAllDevices(myMessage, new SalutCallback() {
             @Override
@@ -160,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 Log.e(TAG, "Oh no! The data failed to send.");
             }
         });
-        onDataReceived(myMessage);
+
     }
 
 
@@ -192,6 +199,16 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             }
         }, false);
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if(MainActivity.this.isHost)
+            network.stopNetworkService(true);
+        else
+            network.unregisterClient(Boolean.parseBoolean(null));
     }
 
 

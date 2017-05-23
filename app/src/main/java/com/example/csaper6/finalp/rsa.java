@@ -8,6 +8,8 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -24,6 +26,9 @@ import javax.crypto.SealedObject;
 
 public class rsa {
     public KeyPair MakeKeys() {
+        //this makes the public and the private key
+        //these keys will be used for encrypting and decrypting the messsage
+        //returns a KeyPair, which consists of the public and private key
         KeyPairGenerator kpg = null;
         try {
             kpg = KeyPairGenerator.getInstance("RSA");
@@ -36,7 +41,10 @@ public class rsa {
 
     }
 
-    public SealedObject enCrypt(KeyPair keys, String message){
+    public SealedObject enCrypt(PublicKey key, String message){
+        //this takes a message that is going to be encrypted, and the key that is going to be used
+        //for the encryption
+        //It returns a sealed object, which holds the encrypted message.
         Cipher c = null;
         try {
             c = Cipher.getInstance("RSA");
@@ -47,7 +55,7 @@ public class rsa {
         }
 // Initiate the Cipher, telling it that it is going to Encrypt, giving it the public key
         try {
-            c.init(Cipher.ENCRYPT_MODE, keys.getPublic());
+            c.init(Cipher.ENCRYPT_MODE, key);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         }
@@ -55,7 +63,7 @@ public class rsa {
         String myMessage = message;
         SealedObject sealedObject= null;
         try {
-            sealedObject = new SealedObject( myMessage, c);
+            sealedObject = new SealedObject(myMessage, c);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
@@ -64,9 +72,11 @@ public class rsa {
         return sealedObject;
     }
 
-        // Get an instance of the Cipher for RSA encryption/decryption
+    public String decipher(SealedObject Sealedobject, PrivateKey key){
+        //this takes the sealed object, which is going to be deciphered
+        //It also takes a private key as a parameter, which is the key that is going to be used for the
+        //decipherment
 
-    public String decipher(SealedObject Sealedobject, KeyPair keys){
         Cipher dec = null;
         try {
             dec = Cipher.getInstance("RSA");
@@ -77,7 +87,7 @@ public class rsa {
         }
 // Initiate the Cipher, telling it that it is going to Decrypt, giving it the private key
         try {
-            dec.init(Cipher.DECRYPT_MODE, keys.getPrivate());
+            dec.init(Cipher.DECRYPT_MODE, key);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         }
